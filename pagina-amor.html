@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para Ti</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400;700&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --amarillo-sol:  #FFD600;
+    --amarillo-oro:  #FFA000;
+    --rojo-amor:     #C62828;
+    --rojo-vivo:     #E53935;
+    --crema:         #FFF8E1;
+    --crema-oscuro:  #FFF0C0;
+    --marron-girasol:#5D4037;
+    --marron-tallo:  #4E7C23;
+    --papel:         #F5F0E8;
+    --tinta:         #3E2723;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--crema);
+    font-family: 'Lato', sans-serif;
+    color: var(--marron-girasol);
+    background-image:
+      radial-gradient(ellipse at 15% 30%, rgba(139,90,43,0.025) 0%, transparent 60%),
+      radial-gradient(ellipse at 85% 70%, rgba(139,90,43,0.02) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 50%, rgba(198,40,40,0.008) 0%, transparent 70%);
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.018;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 512px 512px;
+  }
+
+  #canvas-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .girasol-flotante {
+    position: absolute;
+    opacity: 0;
+    animation: flotar linear infinite;
+  }
+
+  @keyframes flotar {
+    0%   { transform: translateY(110vh) rotate(0deg);   opacity: 0; }
+    5%   { opacity: 0.07; }
+    90%  { opacity: 0.07; }
+    100% { transform: translateY(-20vh) rotate(400deg); opacity: 0; }
+  }
+
+  .heart-particle {
+    position: fixed;
+    font-size: 20px;
+    pointer-events: none;
+    z-index: 9998;
+    animation: heartUp 2s ease-out forwards;
+  }
+  @keyframes heartUp {
+    0%   { transform: translateY(0) scale(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-220px) scale(1.6) rotate(20deg); opacity: 0; }
+  }
+
+  /* ─── LETTER INTRO ─── */
+  .letter-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, #FFF9C4 0%, var(--crema) 70%);
+    transition: opacity 0.6s;
+  }
+  .letter-intro.hidden { opacity: 0; pointer-events: none; }
+
+  .envelope-wrap {
+    position: relative;
+    width: min(380px, 90vw);
+    height: min(270px, 64vw);
+    perspective: 1200px;
+    cursor: pointer;
+  }
+
+  .envelope-body {
+    position: absolute;
+    inset: 0;
+    top: 8%;
+    background: linear-gradient(145deg, #FFE082, var(--amarillo-sol) 40%, var(--amarillo-oro));
+    border-radius: 6px;
+    box-shadow: 0 12px 40px rgba(255,160,0,0.25), 0 4px 16px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s;
+  }
+  .envelope-wrap:hover .envelope-body { box-shadow: 0 18px 56px rgba(255,160,0,0.35), 0 6px 20px rgba(0,0,0,0.1); }
+
+  .envelope-body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 50%, rgba(0,0,0,0.05) 100%);
+    border-radius: 6px;
+  }
+
+  .envelope-flap {
+    position: absolute;
+    top: 0;
+    left: -1px;
+    right: -1px;
+    height: 58%;
+    background: linear-gradient(170deg, #FFE082, var(--amarillo-sol) 60%, var(--amarillo-oro));
+    clip-path: polygon(-2% 0, 102% 0, 78% 100%, 50% 82%, 22% 100%);
+    transform-origin: 50% 0%;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    z-index: 3;
+    border-radius: 6px 6px 0 0;
+    box-shadow: 0 -4px 20px rgba(255,160,0,0.15);
+    transition: box-shadow 0.3s;
+  }
+  .envelope-wrap:hover .envelope-flap { box-shadow: 0 -6px 28px rgba(255,160,0,0.22); }
+
+  .envelope-flap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 60%);
+    clip-path: polygon(-2% 0, 102% 0, 78% 100%, 50% 82%, 22% 100%);
+    border-radius: 6px 6px 0 0;
+  }
+
+  .envelope-flap::after {
+    content: '';
+    position: absolute;
+    bottom: 16%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 2px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 1px;
+  }
+
+  .seal {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    background: radial-gradient(circle at 35% 35%, var(--rojo-vivo), var(--rojo-amor));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    z-index: 5;
+    box-shadow: 0 4px 16px rgba(198,40,40,0.35), inset 0 2px 4px rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.15);
+    user-select: none;
+    transition: box-shadow 0.3s, transform 0.3s;
+  }
+  .envelope-wrap:hover .seal {
+    box-shadow: 0 6px 24px rgba(198,40,40,0.45), inset 0 2px 4px rgba(255,255,255,0.2);
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  .seal::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border: 2px solid rgba(198,40,40,0.15);
+    border-radius: 50%;
+  }
+
+  .envelope-hint {
+    position: absolute;
+    bottom: 12%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Caveat', cursive;
+    font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+    color: rgba(62,39,35,0.55);
+    z-index: 4;
+    animation: hintPulse 2.2s ease-in-out infinite;
+    letter-spacing: 0.02em;
+  }
+
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.5; transform: translateY(0); }
+    50%      { opacity: 0.9; transform: translateY(-4px); }
+  }
+
+  .letter-paper-intro {
+    position: absolute;
+    width: 88%;
+    max-height: 70%;
+    background: var(--papel);
+    border-radius: 2px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+    z-index: 1;
+    opacity: 0;
+    visibility: hidden;
+    padding: 2rem 2.2rem;
+    overflow-y: auto;
+    left: 6%;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(139,90,43,0.06) 28px, rgba(139,90,43,0.06) 29px);
+  }
+
+  .letter-content { position: relative; }
+
+  .letter-washi {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 70%;
+    height: 18px;
+    background: linear-gradient(90deg, transparent, rgba(255,160,0,0.25), rgba(255,214,0,0.3), rgba(255,160,0,0.25), transparent);
+    border-radius: 2px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    pointer-events: none;
+  }
+
+  .letter-date {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(93,64,55,0.5);
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .letter-greeting {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    font-weight: 700;
+    color: var(--rojo-amor);
+    margin-bottom: 0.8rem;
+    line-height: 1.2;
+  }
+
+  .letter-body {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+    line-height: 1.9;
+    color: var(--tinta);
+    margin-bottom: 1.5rem;
+  }
+  .letter-body p { margin-bottom: 1rem; }
+
+  .letter-signature-wrap {
+    text-align: right;
+    margin-top: 1.2rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(198,40,40,0.15);
+  }
+
+  .letter-signature {
+    font-family: 'Caveat', cursive;
+    font-size: clamp(1.3rem, 3.5vw, 1.7rem);
+    color: var(--rojo-amor);
+    font-weight: 600;
+  }
+
+  .letter-signature-sub {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.75rem;
+    color: rgba(93,64,55,0.45);
+    letter-spacing: 0.1em;
+    margin-top: 0.2rem;
+  }
+
+  .letter-deco {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.12;
+  }
+  .letter-deco-1 { bottom: -10px; right: -10px; font-size: 4rem; transform: rotate(15deg); }
+  .letter-deco-2 { top: -8px; left: -10px; font-size: 2.2rem; transform: rotate(-10deg); opacity: 0.08; }
+
+  /* ─── PAGE SYSTEM (HORIZONTAL) ─── */
+  .page-container {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: none;
+    overflow: hidden;
+  }
+  .page-container.active { display: block; }
+
+  .page-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+    will-change: transform;
+  }
+
+  .page {
+    flex: 0 0 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    overflow-y: auto;
+    position: relative;
+    background: radial-gradient(ellipse at center, #FFF9C4 0%, var(--crema) 70%);
+  }
+
+  .page-page { background: radial-gradient(ellipse at center, #FFF9C4 0%, var(--crema) 70%); }
+
+  .page-inner {
+    width: 100%;
+    max-width: 720px;
+    margin: auto;
+    background: var(--papel);
+    border-radius: 3px;
+    padding: 2.5rem 2.8rem;
+    box-shadow: 0 4px 24px rgba(93,64,55,0.04), 0 0 0 1px rgba(255,160,0,0.04);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(139,90,43,0.05) 28px, rgba(139,90,43,0.05) 29px);
+    position: relative;
+  }
+
+  .page-washi {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 70%;
+    height: 18px;
+    background: linear-gradient(90deg, transparent, rgba(255,160,0,0.25), rgba(255,214,0,0.3), rgba(255,160,0,0.25), transparent);
+    border-radius: 2px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    pointer-events: none;
+  }
+
+  .page-tag {
+    font-family: 'Caveat', cursive;
+    font-size: 1rem;
+    color: var(--amarillo-oro);
+    text-align: center;
+    margin-bottom: 0.3rem;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 700;
+    color: var(--rojo-amor);
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 0.6rem;
+  }
+
+  .page-sub {
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: rgba(93,64,55,0.45);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    max-width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .page-num {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 0.75rem;
+    color: rgba(93,64,55,0.15);
+    letter-spacing: 0.15em;
+    z-index: 2;
+    background: rgba(255,248,225,0.8);
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* ─── PÁGINA 1: CARTA ─── */
+  .page-carta .page-inner { max-width: 650px; }
+
+  /* ─── PÁGINA 2: COSAS ─── */
+  .cosas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    max-width: 540px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .cosa-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.7rem 1.1rem;
+    background: rgba(255,248,225,0.6);
+    border-radius: 3px;
+    border: 1px solid rgba(255,160,0,0.05);
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+  .cosa-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--amarillo-oro);
+    transform: scaleY(0);
+    transition: transform 0.3s;
+    border-radius: 0 2px 2px 0;
+  }
+  .cosa-item:hover::before { transform: scaleY(1); }
+  .cosa-item:hover {
+    transform: translateX(6px);
+    box-shadow: 0 4px 16px rgba(93,64,55,0.03);
+    border-color: rgba(255,160,0,0.15);
+  }
+
+  .cosa-icono {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    width: 1.8rem;
+    text-align: center;
+    transition: transform 0.3s;
+  }
+  .cosa-item:hover .cosa-icono { transform: scale(1.2) rotate(-5deg); }
+
+  .cosa-text {
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.4;
+    color: var(--marron-girasol);
+  }
+  .cosa-text strong {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--rojo-amor);
+  }
+
+  /* ─── PÁGINA 3: CUALIDADES ─── */
+  .cualidades-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    max-width: 580px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .cualidad-card {
+    background: rgba(255,248,225,0.6);
+    padding: 1.2rem 1.2rem 1rem;
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(93,64,55,0.02);
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1px solid rgba(255,160,0,0.06);
+    cursor: default;
+  }
+  .cualidad-card:hover {
+    transform: translateY(-4px) rotate(-0.5deg);
+    box-shadow: 0 8px 24px rgba(93,64,55,0.06), 0 0 0 1px rgba(255,160,0,0.1);
+  }
+  .cualidad-card:nth-child(even):hover { transform: translateY(-4px) rotate(0.5deg); }
+
+  .cualidad-washi-card {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(1deg);
+    width: 50%;
+    height: 12px;
+    background: linear-gradient(90deg, rgba(198,40,40,0.12), rgba(198,40,40,0.08), rgba(198,40,40,0.12));
+    border-radius: 1px;
+    pointer-events: none;
+  }
+
+  .cualidad-icono {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 0.3rem;
+    transition: transform 0.3s;
+  }
+  .cualidad-card:hover .cualidad-icono { transform: scale(1.15) rotate(-5deg); }
+
+  .cualidad-numero {
+    font-family: 'Caveat', cursive;
+    font-size: 0.8rem;
+    color: var(--amarillo-oro);
+    margin-bottom: 0.1rem;
+  }
+
+  .cualidad-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--rojo-amor);
+    margin-bottom: 0.2rem;
+  }
+
+  .cualidad-desc {
+    font-size: 0.78rem;
+    font-weight: 300;
+    line-height: 1.5;
+    color: rgba(93,64,55,0.7);
+  }
+
+  .sticky-note {
+    position: relative;
+    max-width: 240px;
+    margin: 1.2rem auto 0;
+    padding: 0.9rem 1.3rem;
+    background: linear-gradient(175deg, #FFF9C4, #FFF3B0);
+    transform: rotate(-1.5deg);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03), 0 0 0 1px rgba(255,214,0,0.12);
+    border-radius: 2px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: default;
+  }
+  .sticky-note:hover { transform: rotate(0deg) scale(1.03); box-shadow: 0 8px 28px rgba(0,0,0,0.05); }
+  .sticky-note::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-3deg);
+    width: 40%;
+    height: 12px;
+    background: linear-gradient(90deg, rgba(255,160,0,0.2), rgba(255,160,0,0.15));
+    border-radius: 1px;
+    pointer-events: none;
+  }
+  .sticky-note p {
+    font-family: 'Caveat', cursive;
+    font-size: 0.95rem;
+    color: var(--marron-girasol);
+    line-height: 1.3;
+  }
+
+  /* ─── PÁGINA 4: RAZONES ─── */
+  .razones-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.8rem;
+    max-width: 620px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .razon-card {
+    background: rgba(255,248,225,0.6);
+    border: 1px solid rgba(255,214,0,0.15);
+    border-radius: 3px;
+    padding: 1.2rem 0.8rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+  .razon-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,214,0,0.04) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .razon-card:hover::after { opacity: 1; }
+  .razon-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(93,64,55,0.04);
+  }
+
+  .razon-icono {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+    display: block;
+    transition: transform 0.3s;
+  }
+  .razon-card:hover .razon-icono { transform: scale(1.1) rotate(-8deg); }
+
+  .razon-numero {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--marron-girasol);
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+
+  .razon-texto {
+    font-size: 0.78rem;
+    font-weight: 300;
+    color: rgba(93,64,55,0.7);
+    line-height: 1.4;
+  }
+
+  /* ─── PÁGINA 5: PROMESAS ─── */
+  .promesas-compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .promesa-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    text-align: left;
+    padding: 1rem 1rem;
+    background: rgba(255,248,225,0.6);
+    border-left: 3px solid var(--amarillo-oro);
+    border-radius: 0 3px 3px 0;
+    transition: border-left-color 0.3s, transform 0.2s, box-shadow 0.3s;
+    box-shadow: 0 2px 6px rgba(93,64,55,0.01);
+    cursor: default;
+  }
+  .promesa-item:hover {
+    border-left-color: var(--rojo-amor);
+    transform: translateX(5px);
+    box-shadow: 0 6px 20px rgba(93,64,55,0.03);
+  }
+
+  .promesa-flor {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    transition: transform 0.3s;
+  }
+  .promesa-item:hover .promesa-flor { transform: scale(1.15) rotate(-10deg); }
+
+  .promesa-text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    color: var(--rojo-amor);
+    margin-bottom: 0.15rem;
+  }
+  .promesa-text p {
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.4;
+    color: rgba(93,64,55,0.65);
+  }
+
+  .cierre-frase-final {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    color: var(--rojo-amor);
+    text-align: center;
+    line-height: 1.3;
+    margin: 1.2rem auto 0.2rem;
+    max-width: 400px;
+    transition: transform 0.3s;
+  }
+  .cierre-frase-final:hover { transform: scale(1.02); }
+
+  .cierre-firma-final {
+    font-family: 'Caveat', cursive;
+    font-size: 1rem;
+    color: var(--amarillo-oro);
+    text-align: center;
+  }
+
+  .btn-corazones {
+    display: block;
+    margin: 0.7rem auto 0;
+    background: var(--rojo-amor);
+    color: #fff;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.65rem 1.8rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(198,40,40,0.15);
+  }
+  .btn-corazones:hover {
+    background: var(--rojo-vivo);
+    transform: scale(1.06) translateY(-2px);
+    box-shadow: 0 8px 28px rgba(198,40,40,0.2);
+  }
+  .btn-corazones:active { transform: scale(0.97); }
+
+  .footer-page {
+    text-align: center;
+    font-size: 0.65rem;
+    color: rgba(93,64,55,0.2);
+    margin-top: 0.6rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── NAVEGACIÓN ─── */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.5rem 1.2rem;
+    gap: 1.2rem;
+    background: linear-gradient(0deg, rgba(255,248,225,0.9) 0%, rgba(255,248,225,0) 100%);
+    pointer-events: none;
+  }
+  .nav.active { display: flex; }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    pointer-events: auto;
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(198,40,40,0.15);
+    background: rgba(255,255,255,0.8);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rojo-amor);
+    transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .nav-btn:hover {
+    background: var(--rojo-amor);
+    color: #fff;
+    border-color: var(--rojo-amor);
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(198,40,40,0.15);
+  }
+  .nav-btn:active { transform: scale(0.95); }
+  .nav-btn:disabled { opacity: 0.2; cursor: default; pointer-events: none; }
+
+  .nav-dots {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(198,40,40,0.12);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+    border: none;
+    padding: 0;
+  }
+  .dot:hover { background: rgba(198,40,40,0.25); transform: scale(1.2); }
+  .dot.active {
+    background: var(--rojo-amor);
+    transform: scale(1.3);
+    box-shadow: 0 0 6px rgba(198,40,40,0.2);
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 2rem 1rem; }
+    .page-inner { padding: 1.5rem; }
+    .cualidades-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+    .razones-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .promesas-compact { grid-template-columns: 1fr; gap: 0.6rem; }
+    .cosas-list { gap: 0.4rem; }
+    .cosa-item { padding: 0.6rem 0.9rem; }
+    .nav { padding: 0.6rem 1rem 1rem; }
+    .nav-btn { width: 36px; height: 36px; font-size: 1rem; }
+    .page-num { bottom: 1rem; font-size: 0.65rem; }
+  }
+
+  @media (max-width: 380px) {
+    .cualidades-grid, .razones-grid { grid-template-columns: 1fr; }
+    .envelope-wrap { width: 96vw; height: 68vw; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .girasol-flotante, .envelope-hint { animation: none; }
+    .envelope-wrap { cursor: default; }
+    .page-track { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-bg" aria-hidden="true"></div>
+
+<!-- ═══════════ INTRO: SOBRE ═══════════ -->
+<div class="letter-intro" id="letterIntro">
+
+  <div class="envelope-wrap" id="envelopeWrap">
+    <div class="envelope-flap" id="envelopeFlap"></div>
+    <div class="envelope-body" id="envelopeBody">
+      <div class="seal" id="seal">❤️</div>
+      <p class="envelope-hint" id="envelopeHint">✦  Haz clic para abrir  ✦</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════ PÁGINAS (HORIZONTALES) ═══════════ -->
+<div class="page-container" id="pageContainer">
+  <div class="page-track" id="pageTrack">
+
+    <!-- PÁGINA 1: CARTA -->
+    <section class="page page-carta" id="page1" data-page="1">
+      <div class="page-inner">
+        <div class="page-washi"></div>
+        <p class="letter-date">—  ✦  Hoy con todo mi amor  ✦  —</p>
+        <h2 class="letter-greeting">Mi reina hermosa,</h2>
+        <div class="letter-body">
+          <p>
+            Esta carta es mi intento de poner en palabras lo que siento, aunque sé que
+            las palabras se quedan cortas para expresar lo que siento por ti, espero mediante
+            este detalle puedas sentir un poco del amor que tengo por ti.
+          </p>
+          <p>
+            Eres mi lugar favorito en el mundo amo cada segundo que paso a tu lado, cada momento
+            junto a ti es un recuerdo que guardo en mi corazón y cada sonrisa que me das es un
+            beso que guardo en mi alma, el solo hecho de decir que tu Lia Ospina eres mi wonita es 
+            el mayor privilegio que he tenido en mi vida.
+          </p>
+        </div>
+        <div class="letter-signature-wrap">
+          <p class="letter-signature">Siempre tuyo,</p>
+          <p class="letter-signature">Andres ♡</p>
+          <p class="letter-signature-sub">— con todo mi corazón —</p>
+        </div>
+      </div>
+      <span class="page-num">01 / 05</span>
+    </section>
+
+    <!-- PÁGINA 2: COSAS QUE ME GUSTAN -->
+    <section class="page page-page" id="page2" data-page="2">
+      <div class="page-inner">
+        <div class="page-washi"></div>
+        <p class="page-tag">✦  Lo que más me gusta de ti  ✦</p>
+        <h2 class="page-title">Cosas que me gustan de ti</h2>
+        <p class="page-sub">Cada detalle tuyo es una razón para sonreír.</p>
+
+        <div class="cosas-list">
+          <div class="cosa-item">
+            <p class="cosa-text">Me encanta <strong>tu personalidad</strong>, tienes una forma de ser tan especial y unica que cautiva mi corazon.</p>
+          </div>
+          <div class="cosa-item">
+          
+            <p class="cosa-text">Amo <strong>lo hermosa que eres</strong>, eres la obra de arte mas bella que jamas ha visto el mundo y yo tengo el privilegio de besar tal obra de arte por mas que digas que te ves mal antes mis ojos siempre seras la perfeccion absoluta</p>
+          </div>
+          <div class="cosa-item">
+            
+            <p class="cosa-text">Me gusta <strong>tu risa y lo tierna que eres</strong>, mi corazon se llena de gozo y ternura cuando te ries me encanta lo tierna que eres cuando te pones consentida, me haces un detalle o consientes a la chichis</p>
+          </div>
+          <div class="cosa-item">
+          
+            <p class="cosa-text">Adoro <strong>lo inteligente que eres</strong>, eres la mujer mas inteligente que he conocido te admiro por todo lo que has logrado amor y me llenas de mucho orgullo</p>
+          </div>
+          <div class="cosa-item">
+            
+            <p class="cosa-text">Adoro <strong>cuando me abrazas</strong> es como si el tiempo se detuviera.</p>
+          </div>
+          <div class="cosa-item">
+            
+            <p class="cosa-text">Amo <strong> lo sexy que eres</strong> enciendes mi deseo por ti a niveles que no puedo describir.</p>
+          </div>
+          <div class="cosa-item">
+            
+            <p class="cosa-text">Me encanta <strong>cuando me cuentas cosas o hablas de las cosas que te gustan</strong> te ves de una forma tan hermosa y tierna cautivas totalemente mi atencion siempre que hablas.</p>
+          </div>
+          <div class="cosa-item">
+          
+            <p class="cosa-text">Sobre todo lo que mas amo es  <strong>que eres mi wonita</strong> soy el hombre mas afortunado por tenerte en mi vida.</p>
+          </div>
+        </div>
+      </div>
+      <span class="page-num">02 / 05</span>
+    </section>
+
+    <!-- PÁGINA 3: CUALIDADES -->
+    <section class="page page-page" id="page3" data-page="3">
+      <div class="page-inner">
+        <div class="page-washi"></div>
+        <p class="page-tag">✦  Las cosas que te hacen única  ✦</p>
+        <h2 class="page-title">Cosas que admiro de ti </h2>
+        <p class="page-sub">Hay tantas cosas que te admiro que esta pagina se queda corta</p>
+
+        <div class="cualidades-grid">
+          <div class="cualidad-card">
+            <div class="cualidad-washi-card"></div>
+            <div class="cualidad-numero">— una —</div>
+            <h3 class="cualidad-titulo">Tu determinación</h3>
+            <p class="cualidad-desc">cuando quieres algo te esfuerzas por conseguirlo</p>
+          </div>
+          <div class="cualidad-card">
+            <div class="cualidad-washi-card"></div>
+            <div class="cualidad-numero">— dos —</div>
+            <h3 class="cualidad-titulo">Tu Capacidad intelectual</h3>
+            <p class="cualidad-desc"> Considero que eres la persona mas inteligente que conozco admiro si me piden decribir una persona que es un genio no existe otro nombre que no sea el tuyo</p>
+          </div>
+          <div class="cualidad-card">
+            <div class="cualidad-washi-card"></div>
+            <div class="cualidad-numero">— tres —</div>
+            <h3 class="cualidad-titulo">Tu creatividad</h3>
+            <p class="cualidad-desc">Tienes una enorme capacidad de crear cosas hermosa y amo cada pieza por mas pequeña que sea, eres un artista total amor cada cosa que tu creas es arte de la mas alta calidad</p>
+          </div>
+          <div class="cualidad-card">
+            <div class="cualidad-washi-card"></div>
+            <div class="cualidad-numero">— cuatro —</div>
+            <h3 class="cualidad-titulo">Tu forma de amar </h3>
+            <p class="cualidad-desc">Admiro muco la forma en la que tu amas ya que cuando sientes cariño por alguien te esfuerzas en aprender a amarlo de forma mas adecuada, aprendes sus gustos, sus hobbies todo lo que le gusta a esa persona y amas de una tan hermosa y sincera que en mi caso es como si nunca me hubieran amado hasta que te conoci a ti.</p>
+          </div>
+        </div>
+
+        <div class="sticky-note">
+          <p>«Cada cualidad tuya es un pétalo más<br>en el girasol de mi corazón»</p>
+        </div>
+      </div>
+      <span class="page-num">03 / 05</span>
+    </section>
+
+    <!-- PÁGINA 4: RAZONES -->
+    <section class="page page-page" id="page4" data-page="4">
+      <div class="page-inner">
+        <div class="page-washi"></div>
+        <p class="page-tag">✦  Una por una  ✦</p>
+        <h2 class="page-title">Razones por las que te amo</h2>
+        <p class="page-sub">Podría escribir mil y cada una sería igual de cierta.</p>
+
+        <div class="razones-grid">
+          <div class="razon-card">
+            <div class="razon-numero">01</div>
+            <p class="razon-texto">Tu corazon y tu forma de amar puedo decir sin miedo a equivocarme que nadie me ha amado de tal forma en la que lo has hecho tu</p>
+          </div>
+          <div class="razon-card">
+            <div class="razon-numero">02</div>
+            <p class="razon-texto">lo hermosa que eres de verdad no existen palabras para describir lo divina y perfecta que eres </p>
+          </div>
+          <div class="razon-card">
+            <div class="razon-numero">03</div>
+            <p class="razon-texto">Tu personalidad, adoro la forma en la que eres mi amor de verdad tu personalidad me tiene cautivado</p>
+          </div>
+          <div class="razon-card">
+            <div class="razon-numero">04</div>
+            <p class="razon-texto">El que me apoyes muchas personas me pueden decir que puedo con algo y me dara igual pero si tu dices que puedo con algo no existe forma en el mundo que no pueda hacerlo, cuando me dijiste que te sentias orgullosa de mi supe que todo el esfuerzo que he hecho ha valido la pena</p>
+          </div>
+          <div class="razon-card">
+            <div class="razon-numero">05</div>
+            <p class="razon-texto">Que nos amemos de la forma mas hermosa y sincera, contigo todo es tan magico y lindo haces que para mi no exista nada cuando estoy contigo traes paz a mi vida </p>
+          </div>
+          <div class="razon-card">
+            <div class="razon-numero">06</div>
+            <p class="razon-texto">Que puedas ser tu conmigo y yo pueda ser yo contigo verte sin ningun tipo de filtro hace que me enamore mas de la persona que eres me tienes tan fascinado que aun no puedo creer que estes en mi vida</p>
+          </div>
+        </div>
+      </div>
+      <span class="page-num">04 / 05</span>
+    </section>
+
+    <!-- PÁGINA 5: PROMESAS -->
+    <section class="page page-page" id="page5" data-page="5">
+      <div class="page-inner">
+        <div class="page-washi"></div>
+        <p class="page-tag">✦  De corazón a corazón  ✦</p>
+        <h2 class="page-title">Mis promesas para ti</h2>
+        <p class="page-sub">Palabras que van más allá del aire, que sostengo con cada latido.</p>
+
+        <div class="promesas-compact">
+          <div class="promesa-item">
+            <div class="promesa-text">
+              <h3>Estaré siempre ahí</h3>
+              <p>prometo jamas alejarme o dejarte sola mi amor y siempre que tu quieras voy a estar en tu vida, te apoyare en momento sea bueno o malo amor, tambien celebrare cada uno de tus logros ya que me declaro tu fan #1</p>
+            </div>
+          </div>
+          <div class="promesa-item">
+            <div class="promesa-text">
+              <h3>Te elegiré cada día</h3>
+              <p>Cada dia hasta el dia de mi muerte te elegiré a ti  se que jamas me voy a arrepentir de esa decision siempre seras tu y solo tu amor te elegiré y te sere fiel incluso hasta despues de mi muerte porque si existen vidas despues de esta en todas y cada una te elijo a ti</p>
+            </div>
+          </div>
+          <div class="promesa-item">
+            <div class="promesa-text">
+              <h3>Cuidaré tu corazón</h3>
+              <p>Trataré a tu corazon como el mayor tesoro qe jamas a existido prometo cuidar tu corazon y llenarlo de amor para que jamas te arrepientas de haberme escogido</p>
+            </div>
+          </div>
+          <div class="promesa-item">
+            <div class="promesa-text">
+              <h3>Creceré contigo</h3>
+              <p>Quiero ser mejor version de mi mismo para asi crecer contigo cada dia como el equipo que somos para asi tener la vida que tanto anhelamos. </p>
+            </div>
+          </div>
+        </div>
+
+        <p class="cierre-frase-final">"Eres mi sol, mi girasol,<br>mi lugar favorito en el mundo."</p>
+        <p class="cierre-firma-final">— Siempre tuyo, Andres  ♡</p>
+
+        <button class="btn-corazones" onclick="lanzarCorazones()">✨ Asi me siento cuando te veo amor ✨</button>
+        <p class="footer-page">Hecho con ❤️ y 🌻 · Solo para ti · Siempre</p>
+      </div>
+      <span class="page-num">05 / 05</span>
+    </section>
+
+  </div>
+</div>
+
+<!-- ═══════════ NAVEGACIÓN ═══════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <button class="nav-btn nav-prev" id="navPrev" aria-label="Anterior">←</button>
+    <div class="nav-dots" id="navDots">
+      <button class="dot active" data-page="1" aria-label="Ir a página 1"></button>
+      <button class="dot" data-page="2" aria-label="Ir a página 2"></button>
+      <button class="dot" data-page="3" aria-label="Ir a página 3"></button>
+      <button class="dot" data-page="4" aria-label="Ir a página 4"></button>
+      <button class="dot" data-page="5" aria-label="Ir a página 5"></button>
+    </div>
+    <button class="nav-btn nav-next" id="navNext" aria-label="Siguiente">→</button>
+  </div>
+</nav>
+
+<script>
+  let cartaAbierta = false;
+  let currentPage = 1;
+  const totalPages = 5;
+
+  document.getElementById('envelopeWrap').addEventListener('click', function(e) {
+    if (!cartaAbierta) abrirCarta();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !cartaAbierta) abrirCarta();
+    if (!cartaAbierta) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); goToPage(currentPage + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goToPage(currentPage - 1); }
+  });
+
+  function abrirCarta() {
+    if (cartaAbierta) return;
+    cartaAbierta = true;
+
+    const seal = document.getElementById('seal');
+    const flap = document.getElementById('envelopeFlap');
+    const wrap = document.getElementById('envelopeWrap');
+    const envelopeBody = document.getElementById('envelopeBody');
+    const letterPaper = document.getElementById('letterPaperIntro');
+    const envelopeHint = document.getElementById('envelopeHint');
+    const intro = document.getElementById('letterIntro');
+    const container = document.getElementById('pageContainer');
+    const nav = document.getElementById('nav');
+
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+    tl.to(seal, { scale: 1.25, duration: 0.12, ease: 'power2.out' })
+      .to(seal, { scale: 0.85, duration: 0.08, ease: 'power2.in' })
+      .to(seal, { scale: 1.4, opacity: 0, duration: 0.3, ease: 'back.in(2.5)' });
+
+    tl.to(flap, {
+      rotationX: -180,
+      transformOrigin: '50% 0%',
+      duration: 0.6,
+      ease: 'power2.inOut'
+    }, '-=0.15');
+
+    tl.to(envelopeHint, { opacity: 0, duration: 0.1 }, '-=0.3');
+
+    tl.to(envelopeBody, {
+      scaleY: 0.1,
+      opacity: 0,
+      duration: 0.35,
+      ease: 'power2.in'
+    }, '-=0.15');
+
+    tl.set(letterPaper, { visibility: 'visible', opacity: 1 })
+      .fromTo(letterPaper,
+        { y: '100%', opacity: 0.3 },
+        { y: '0%', opacity: 1, duration: 0.85, ease: 'power4.out' },
+        '-=0.1'
+      );
+
+    tl.to(wrap, {
+      scale: 0.4,
+      opacity: 0,
+      duration: 0.35,
+      ease: 'power3.in'
+    }, '-=0.4');
+
+    tl.to(letterPaper, {
+      width: '92%',
+      maxWidth: '820px',
+      maxHeight: '78%',
+      padding: '2.8rem 3.2rem',
+      duration: 0.5,
+      ease: 'power2.out'
+    }, '-=0.15');
+
+    tl.from('.letter-content > *', {
+      opacity: 0,
+      y: 12,
+      stagger: 0.05,
+      duration: 0.3,
+      ease: 'power2.out'
+    }, '-=0.25');
+
+    tl.from('.letter-deco', {
+      scale: 0,
+      opacity: 0,
+      stagger: 0.1,
+      duration: 0.25,
+      ease: 'back.out(2)'
+    }, '-=0.1');
+
+    tl.call(function() {
+      intro.classList.add('hidden');
+      container.classList.add('active');
+      nav.classList.add('active');
+      currentPage = 1;
+      updateTrack();
+      updateNav();
+    }, null, '+=0.1');
+  }
+
+  function goToPage(n) {
+    if (n < 1 || n > totalPages) return;
+    currentPage = n;
+    updateTrack();
+    updateNav();
+  }
+
+  function updateTrack() {
+    const track = document.getElementById('pageTrack');
+    track.style.transform = `translateX(-${(currentPage - 1) * 100}vw)`;
+  }
+
+  function updateNav() {
+    document.getElementById('navPrev').disabled = currentPage === 1;
+    document.getElementById('navNext').disabled = currentPage === totalPages;
+    document.querySelectorAll('.dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i + 1 === currentPage);
+    });
+  }
+
+  document.getElementById('navPrev').addEventListener('click', () => goToPage(currentPage - 1));
+  document.getElementById('navNext').addEventListener('click', () => goToPage(currentPage + 1));
+
+  document.querySelectorAll('.dot').forEach(dot => {
+    dot.addEventListener('click', () => goToPage(parseInt(dot.dataset.page)));
+  });
+
+  /* ─── GIRASOLES ─── */
+  function crearGirasolSVG(size) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 200 240');
+    svg.setAttribute('width', size);
+    svg.setAttribute('height', size * 1.2);
+
+    const angulos = [0,30,60,90,120,150,180,210,240,270,300,330];
+    angulos.forEach(a => {
+      const el = document.createElementNS(ns, 'ellipse');
+      el.setAttribute('cx','100'); el.setAttribute('cy','52');
+      el.setAttribute('rx','13'); el.setAttribute('ry','28');
+      el.setAttribute('fill', a % 60 === 0 ? '#FFD600' : '#FFC107');
+      el.setAttribute('transform', `rotate(${a} 100 100)`);
+      svg.appendChild(el);
+    });
+
+    const tallo = document.createElementNS(ns, 'path');
+    tallo.setAttribute('d','M100 200 Q95 160 100 120');
+    tallo.setAttribute('stroke','#4E7C23'); tallo.setAttribute('stroke-width','6');
+    tallo.setAttribute('fill','none'); tallo.setAttribute('stroke-linecap','round');
+    svg.appendChild(tallo);
+
+    const hojaPath = document.createElementNS(ns, 'path');
+    hojaPath.setAttribute('d','M100 155 Q80 142 65 148');
+    hojaPath.setAttribute('stroke','#4E7C23'); hojaPath.setAttribute('stroke-width','4');
+    hojaPath.setAttribute('fill','none'); hojaPath.setAttribute('stroke-linecap','round');
+    svg.appendChild(hojaPath);
+
+    const hojaEl = document.createElementNS(ns, 'ellipse');
+    hojaEl.setAttribute('cx','55'); hojaEl.setAttribute('cy','146');
+    hojaEl.setAttribute('rx','17'); hojaEl.setAttribute('ry','9');
+    hojaEl.setAttribute('fill','#5A9D2E');
+    hojaEl.setAttribute('transform','rotate(-30 55 146)');
+    svg.appendChild(hojaEl);
+
+    const c1 = document.createElementNS(ns, 'circle');
+    c1.setAttribute('cx','100'); c1.setAttribute('cy','100'); c1.setAttribute('r','30'); c1.setAttribute('fill','#5D4037');
+    const c2 = document.createElementNS(ns, 'circle');
+    c2.setAttribute('cx','100'); c2.setAttribute('cy','100'); c2.setAttribute('r','22'); c2.setAttribute('fill','#4E342E');
+    svg.appendChild(c1); svg.appendChild(c2);
+    return svg;
+  }
+
+  const bg = document.getElementById('canvas-bg');
+  for (let i = 0; i < 12; i++) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'girasol-flotante';
+    const size = 50 + Math.random() * 90;
+    const leftPos = Math.random() * 94;
+    const duracion = 16 + Math.random() * 22;
+    const delay = -(Math.random() * duracion);
+    wrapper.style.cssText = `left:${leftPos}%;width:${size}px;animation-duration:${duracion}s;animation-delay:${delay}s;`;
+    wrapper.appendChild(crearGirasolSVG(size));
+    bg.appendChild(wrapper);
+  }
+
+  /* ─── CONFETTI ─── */
+  function lanzarCorazones() {
+    confetti({ particleCount: 40, spread: 70, origin: { y: 0.6 }, colors: ['#FFD600', '#FFA000', '#C62828', '#E53935', '#FFF8E1'], shapes: ['circle', 'square'], scalar: 1.2 });
+    setTimeout(() => {
+      confetti({ particleCount: 25, spread: 100, origin: { y: 0.5, x: 0.3 }, colors: ['#FFD600', '#C62828', '#FFA000'] });
+      confetti({ particleCount: 25, spread: 100, origin: { y: 0.5, x: 0.7 }, colors: ['#FFD600', '#C62828', '#FFA000'] });
+    }, 200);
+    const emojis = ['❤️','🌻','💛','💖','🌺','✨','💝','🌸'];
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'heart-particle';
+        el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        el.style.cssText = `left:${10 + Math.random() * 80}%;bottom:${10 + Math.random() * 30}%;font-size:${16 + Math.random() * 24}px;animation-delay:${Math.random() * 0.6}s;animation-duration:${1.5 + Math.random() * 1.2}s;`;
+        document.body.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }, i * 50);
+    }
+  }
+</script>
+</body>
+</html>
